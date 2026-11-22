@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17.7-alpine
+    environment:
+      POSTGRES_DB: ${OXYGEN_DB_NAME:-oxygen}
+      POSTGRES_USER: ${OXYGEN_DB_USER:-oxygen}
+      POSTGRES_PASSWORD: ${OXYGEN_DB_PASSWORD:-local-only-change-me}
+    ports:
+      - "${OXYGEN_DB_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+    volumes:
+      - oxygen-postgres:/var/lib/postgresql/data
+
+volumes:
+  oxygen-postgres:
