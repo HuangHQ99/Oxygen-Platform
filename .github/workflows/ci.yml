@@ -46,11 +46,30 @@ jobs:
         run: pnpm check
 
   browser:
-    name: Browser smoke test
+    name: Full-stack browser smoke test
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17.7-alpine
+        env:
+          POSTGRES_DB: oxygen
+          POSTGRES_USER: oxygen
+          POSTGRES_PASSWORD: local-only-change-me
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U oxygen -d oxygen"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
       - uses: pnpm/action-setup@v6
         with:
           version: 11.25.0
@@ -62,7 +81,21 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Install Chromium
         run: pnpm --filter @oxygen/web exec playwright install --with-deps chromium
+      - name: Start API with migrated PostgreSQL
+        run: |
+          ./mvnw --batch-mode --no-transfer-progress -DskipTests package
+          java -jar backend/oxygen-boot/target/oxygen-boot-0.1.0-SNAPSHOT.jar > /tmp/oxygen-api.log 2>&1 &
+          for attempt in {1..60}; do
+            if curl --fail --silent http://127.0.0.1:8080/actuator/health/readiness; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/oxygen-api.log
+          exit 1
       - name: Build web application
         run: pnpm --filter @oxygen/web build
-      - name: Test desktop and mobile layouts
+      - name: Test desktop and mobile through the real API
+        env:
+          OXYGEN_E2E_REAL_API: "true"
         run: pnpm test:e2e
