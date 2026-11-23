@@ -1,0 +1,104 @@
+openapi: 3.1.0
+info:
+  title: Oxygen API
+  version: 0.2.0
+  description: >-
+    W02-02 development contract. The navigation bootstrap response is synthetic
+    demo data until W02-03 connects identity and server-side grants.
+servers:
+  - url: /api/v1
+paths:
+  /navigation/bootstrap:
+    get:
+      operationId: getNavigationBootstrap
+      summary: Load the current workspace navigation context
+      description: >-
+        Returns synthetic display identity and per-client grants for W02-02.
+        This public development endpoint is not an authorization decision.
+      responses:
+        '200':
+          description: Workspace context loaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkspaceBootstrap'
+components:
+  schemas:
+    WorkspaceBootstrap:
+      type: object
+      additionalProperties: false
+      required: [demoMode, provider, actor, initialClientId, grants]
+      properties:
+        demoMode:
+          type: boolean
+          const: true
+        provider:
+          $ref: '#/components/schemas/Provider'
+        actor:
+          $ref: '#/components/schemas/Actor'
+        initialClientId:
+          type: string
+        grants:
+          type: array
+          items:
+            $ref: '#/components/schemas/ClientGrant'
+    Provider:
+      type: object
+      additionalProperties: false
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    Actor:
+      type: object
+      additionalProperties: false
+      required: [id, name, position]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        position:
+          type: string
+    ClientGrant:
+      type: object
+      additionalProperties: false
+      required: [clientId, clientCode, clientName, roles, dataCentres]
+      properties:
+        clientId:
+          type: string
+        clientCode:
+          type: string
+        clientName:
+          type: string
+        roles:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/WorkspaceRole'
+        dataCentres:
+          type: array
+          items:
+            $ref: '#/components/schemas/DataCentreGrant'
+    WorkspaceRole:
+      type: string
+      enum:
+        - PROVIDER_ADMIN
+        - PROVIDER_MAINTENANCE_LEAD
+        - PROVIDER_FIELD_ENGINEER
+    DataCentreGrant:
+      type: object
+      additionalProperties: false
+      required: [id, code, name, timeZone]
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        name:
+          type: string
+        timeZone:
+          type: string
+          examples: [Asia/Kuala_Lumpur]

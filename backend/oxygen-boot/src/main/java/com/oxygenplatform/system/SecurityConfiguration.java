@@ -16,7 +16,10 @@ class SecurityConfiguration {
         .authorizeHttpRequests(
             requests ->
                 requests
-                    .requestMatchers("/actuator/health/**", "/api/v1/system/info")
+                    .requestMatchers(
+                        "/actuator/health/**",
+                        "/api/v1/system/info",
+                        "/api/v1/navigation/bootstrap")
                     .permitAll()
                     .anyRequest()
                     .authenticated())

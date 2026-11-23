@@ -16,13 +16,69 @@ test('renders the Oxygen shell without horizontal overflow', async ({ page }) =>
         },
       })
     })
+    await page.route('**/api/v1/navigation/bootstrap', async (route) => {
+      await route.fulfill({
+        contentType: 'application/json',
+        json: {
+          demoMode: true,
+          provider: { id: 'provider-demo', name: 'Oxygen Demo Services' },
+          actor: {
+            id: 'actor-demo',
+            name: 'Aiman Rahman',
+            position: 'Maintenance Lead / Field Engineer',
+          },
+          initialClientId: 'client-a-demo',
+          grants: [
+            {
+              clientId: 'client-a-demo',
+              clientCode: 'CLIENT-A',
+              clientName: '客户 A（合成）',
+              roles: ['PROVIDER_MAINTENANCE_LEAD', 'PROVIDER_FIELD_ENGINEER'],
+              dataCentres: [
+                {
+                  id: 'site-a1-demo',
+                  code: 'A1',
+                  name: 'A1 数据中心',
+                  timeZone: 'Asia/Kuala_Lumpur',
+                },
+                {
+                  id: 'site-a2-demo',
+                  code: 'A2',
+                  name: 'A2 数据中心',
+                  timeZone: 'Asia/Kuala_Lumpur',
+                },
+              ],
+            },
+            {
+              clientId: 'client-b-demo',
+              clientCode: 'CLIENT-B',
+              clientName: '客户 B（合成）',
+              roles: ['PROVIDER_FIELD_ENGINEER'],
+              dataCentres: [
+                {
+                  id: 'site-b1-demo',
+                  code: 'B1',
+                  name: 'B1 数据中心',
+                  timeZone: 'Asia/Kuala_Lumpur',
+                },
+              ],
+            },
+          ],
+        },
+      })
+    })
   }
 
-  await page.goto('/')
+  await page.goto('/plans')
 
-  await expect(page.getByRole('heading', { name: 'Oxygen' })).toBeVisible()
-  await expect(page.getByText('数据中心设备维保平台')).toBeVisible()
-  await expect(page.getByText('Connected')).toBeVisible()
+  await expect(page.getByRole('heading', { name: '维保计划', exact: true })).toBeVisible()
+  await expect(page.getByLabel('当前客户')).toHaveValue('client-a-demo')
+  await page.getByLabel('当前客户').selectOption('client-b-demo')
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByRole('heading', { name: '下午好，Aiman Rahman' })).toBeVisible()
+  await expect(page.getByText('上一客户的页面条件与临时上下文已清除')).toBeVisible()
+  expect(await page.getByText('设备资产').count()).toBe(0)
+  expect(await page.getByText('维保计划').count()).toBe(0)
 
   if (usesRealApi) {
     const readiness = await page.request.get('/actuator/health/readiness')
