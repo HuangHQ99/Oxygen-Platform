@@ -50,6 +50,13 @@ onBeforeUnmount(() => controller.abort())
     <strong>正在准备 Oxygen 工作区…</strong>
   </div>
 
+  <div v-else-if="workspace.authenticationRequired" class="launch-state">
+    <div class="brand-mark" aria-hidden="true">O₂</div>
+    <strong>登录 Oxygen</strong>
+    <p>请使用服务商账号登录后进入已授权客户范围。</p>
+    <a class="launch-action" href="/login">登录</a>
+  </div>
+
   <div v-else-if="workspace.error && !workspace.bootstrap" class="launch-state error-state">
     <div class="brand-mark" aria-hidden="true">O₂</div>
     <strong>工作区暂不可用</strong>

@@ -609,6 +609,14 @@ h2 {
 .launch-state p {
   color: #69817b;
 }
+.launch-action {
+  min-height: 44px;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.8rem;
+  color: #fff;
+  background: #0c6b5d;
+  font-weight: 750;
+}
 .mobile-navigation {
   display: none;
 }

@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import {
+  AuthenticationRequiredError,
   fetchWorkspaceBootstrap,
   type WorkspaceBootstrap,
   type WorkspaceRole,
@@ -22,6 +23,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   const contextRevision = ref(0)
   const loading = ref(false)
   const error = ref('')
+  const authenticationRequired = ref(false)
   const notice = ref('')
 
   const currentGrant = computed(
@@ -38,11 +40,16 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   async function load(signal?: AbortSignal) {
     loading.value = true
     error.value = ''
+    authenticationRequired.value = false
     try {
       hydrate(await fetchWorkspaceBootstrap(signal))
     } catch (loadError) {
       if (loadError instanceof DOMException && loadError.name === 'AbortError') return
-      error.value = '无法载入工作区，请确认 Oxygen API 已启动。'
+      if (loadError instanceof AuthenticationRequiredError) {
+        authenticationRequired.value = true
+      } else {
+        error.value = '无法载入工作区，请确认 Oxygen API 已启动。'
+      }
     } finally {
       loading.value = false
     }
@@ -132,6 +139,7 @@ export const useWorkspaceStore = defineStore('workspace', () => {
     contextRevision,
     loading,
     error,
+    authenticationRequired,
     notice,
     currentGrant,
     currentRoles,

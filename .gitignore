@@ -9,7 +9,9 @@
 
 .tools/
 node_modules/
+.pnpm-store/
 dist/
+cdk.out/
 coverage/
 playwright-report/
 test-results/

@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test'
 
 test('renders the Oxygen shell without horizontal overflow', async ({ page }) => {
   const usesRealApi = process.env.OXYGEN_E2E_REAL_API === 'true'
+  const clientAId = usesRealApi ? '20000000-0000-0000-0000-00000000000a' : 'client-a-demo'
+  const clientBId = usesRealApi ? '20000000-0000-0000-0000-00000000000b' : 'client-b-demo'
 
   if (!usesRealApi) {
     await page.route('**/api/v1/system/info', async (route) => {
@@ -71,9 +73,29 @@ test('renders the Oxygen shell without horizontal overflow', async ({ page }) =>
 
   await page.goto('/plans')
 
+  if (usesRealApi) {
+    await page.getByRole('link', { name: '登录', exact: true }).click()
+    await page.getByLabel('Username').fill('aiman')
+    await page.getByLabel('Password').fill('local-only-change-me')
+    await page.getByRole('button', { name: 'Sign in' }).click()
+    await page.goto('/plans')
+  }
+
   await expect(page.getByRole('heading', { name: '维保计划', exact: true })).toBeVisible()
-  await expect(page.getByLabel('当前客户')).toHaveValue('client-a-demo')
-  await page.getByLabel('当前客户').selectOption('client-b-demo')
+  await expect(page.getByLabel('当前客户')).toHaveValue(clientAId)
+  if (usesRealApi) {
+    const authorizedAsset = await page.request.get(
+      `/api/v1/clients/${clientAId}/assets/60000000-0000-0000-0000-00000000000a`,
+    )
+    expect(authorizedAsset.status()).toBe(200)
+    expect((await authorizedAsset.json()).assetCode).toBe('FM200-001')
+
+    const crossClientProbe = await page.request.get(
+      `/api/v1/clients/${clientBId}/assets/60000000-0000-0000-0000-00000000000a`,
+    )
+    expect(crossClientProbe.status()).toBe(404)
+  }
+  await page.getByLabel('当前客户').selectOption(clientBId)
   await expect(page).toHaveURL(/\/$/)
   await expect(page.getByRole('heading', { name: '下午好，Aiman Rahman' })).toBeVisible()
   await expect(page.getByText('上一客户的页面条件与临时上下文已清除')).toBeVisible()
@@ -82,7 +104,7 @@ test('renders the Oxygen shell without horizontal overflow', async ({ page }) =>
 
   await page.goto('/plans')
   await expect(page).toHaveURL(/\/$/)
-  await expect(page.getByLabel('当前客户')).toHaveValue('client-b-demo')
+  await expect(page.getByLabel('当前客户')).toHaveValue(clientBId)
   expect(await page.getByRole('heading', { name: '维保计划', exact: true }).count()).toBe(0)
 
   if (usesRealApi) {

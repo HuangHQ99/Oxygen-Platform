@@ -30,3 +30,6 @@ management:
 
 oxygen:
   environment: ${OXYGEN_ENVIRONMENT:local}
+  auth:
+    mode: ${OXYGEN_AUTH_MODE:demo}
+    demo-password: ${OXYGEN_DEMO_PASSWORD:local-only-change-me}

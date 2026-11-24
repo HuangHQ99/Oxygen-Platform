@@ -2,11 +2,29 @@
   "name": "@oxygen/infra",
   "private": true,
   "version": "0.1.0",
+  "type": "module",
   "scripts": {
-    "build": "node -e \"console.log('Infrastructure implementation starts in W02-03')\"",
-    "format:check": "node -e \"console.log('No infrastructure sources yet')\"",
-    "lint": "node -e \"console.log('No infrastructure sources yet')\"",
-    "typecheck": "node -e \"console.log('No infrastructure sources yet')\"",
-    "test": "node -e \"console.log('No infrastructure sources yet')\""
+    "build": "tsc --project tsconfig.json",
+    "cdk": "cdk",
+    "synth": "pnpm build && cdk synth --quiet",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "typecheck": "tsc --project tsconfig.json --noEmit",
+    "test": "pnpm build && node --test dist/test/*.test.js"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.225.0",
+    "constructs": "10.4.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.1",
+    "@types/node": "24.10.1",
+    "aws-cdk": "2.1103.0",
+    "eslint": "9.39.1",
+    "prettier": "3.7.1",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.48.0"
   }
 }

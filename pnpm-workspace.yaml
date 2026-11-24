@@ -1,3 +1,6 @@
 packages:
   - apps/*
   - infra
+allowBuilds:
+  # esbuild is required by Vite/tsx; its install script selects the signed platform binary.
+  esbuild: true

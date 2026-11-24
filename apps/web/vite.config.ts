@@ -12,6 +12,22 @@ const backendProxy = {
     target: 'http://localhost:8080',
     changeOrigin: true,
   },
+  '/login': {
+    target: 'http://localhost:8080',
+    changeOrigin: true,
+  },
+  '/logout': {
+    target: 'http://localhost:8080',
+    changeOrigin: true,
+  },
+  '/oauth2': {
+    target: 'http://localhost:8080',
+    changeOrigin: true,
+  },
+  '/login/oauth2': {
+    target: 'http://localhost:8080',
+    changeOrigin: true,
+  },
 }
 
 export default defineConfig({

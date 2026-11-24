@@ -31,12 +31,17 @@ export interface WorkspaceBootstrap {
   grants: ClientGrant[]
 }
 
+export class AuthenticationRequiredError extends Error {}
+
 export async function fetchWorkspaceBootstrap(signal?: AbortSignal): Promise<WorkspaceBootstrap> {
   const response = await fetch('/api/v1/navigation/bootstrap', {
     headers: { Accept: 'application/json' },
     ...(signal ? { signal } : {}),
   })
 
+  if (response.status === 401) {
+    throw new AuthenticationRequiredError('Sign-in required')
+  }
   if (!response.ok) {
     throw new Error(`Navigation API returned ${response.status}`)
   }

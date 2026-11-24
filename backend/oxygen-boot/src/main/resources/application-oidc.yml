@@ -1,0 +1,20 @@
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          cognito:
+            client-id: ${OXYGEN_OIDC_CLIENT_ID}
+            client-secret: ${OXYGEN_OIDC_CLIENT_SECRET}
+            scope: openid,profile,email
+        provider:
+          cognito:
+            issuer-uri: ${OXYGEN_OIDC_ISSUER_URI}
+
+server:
+  forward-headers-strategy: framework
+  servlet:
+    session:
+      cookie:
+        secure: true
+        same-site: lax
