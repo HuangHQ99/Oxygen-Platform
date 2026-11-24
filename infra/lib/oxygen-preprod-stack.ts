@@ -1,5 +1,4 @@
 import * as cdk from "aws-cdk-lib";
-import * as budgets from "aws-cdk-lib/aws-budgets";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as cognito from "aws-cdk-lib/aws-cognito";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
@@ -17,11 +16,6 @@ export class OxygenPreprodStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const alertEmail = new cdk.CfnParameter(this, "BudgetAlertEmail", {
-      type: "String",
-      description: "Email address that receives AWS monthly cost alerts",
-      allowedPattern: "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
-    });
     const originVerifyToken = new cdk.CfnParameter(this, "OriginVerifyToken", {
       type: "String",
       noEcho: true,
@@ -274,39 +268,6 @@ export class OxygenPreprodStack extends cdk.Stack {
     instance.userData.addCommands(
       `printf '\nOXYGEN_USER_POOL_ID=${userPool.userPoolId}\n' >> /opt/oxygen/stack.env`,
     );
-
-    new budgets.CfnBudget(this, "MonthlyBudget", {
-      budget: {
-        budgetName: "oxygen-preprod-monthly",
-        budgetType: "COST",
-        timeUnit: "MONTHLY",
-        budgetLimit: { amount: 20, unit: "USD" },
-      },
-      notificationsWithSubscribers: [
-        {
-          notification: {
-            comparisonOperator: "GREATER_THAN",
-            notificationType: "FORECASTED",
-            threshold: 80,
-            thresholdType: "PERCENTAGE",
-          },
-          subscribers: [
-            { address: alertEmail.valueAsString, subscriptionType: "EMAIL" },
-          ],
-        },
-        {
-          notification: {
-            comparisonOperator: "GREATER_THAN",
-            notificationType: "ACTUAL",
-            threshold: 100,
-            thresholdType: "PERCENTAGE",
-          },
-          subscribers: [
-            { address: alertEmail.valueAsString, subscriptionType: "EMAIL" },
-          ],
-        },
-      ],
-    });
 
     new cdk.CfnOutput(this, "HostedEntry", {
       value: `https://${distribution.distributionDomainName}`,

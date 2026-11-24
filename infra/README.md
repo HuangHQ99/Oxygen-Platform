@@ -3,8 +3,9 @@
 W02-03 provisions a deliberately small AWS pre-production foundation in Malaysia
 (`ap-southeast-5`). It contains Cognito hosted login, CloudFront, one `t4g.micro` Graviton node
 with 2 GiB swap, encrypted EBS, two ECR repositories, a generated database secret, an encrypted
-versioned S3 backup bucket, Systems Manager access and an AWS monthly budget. There is no NAT
-Gateway, load balancer or inbound SSH rule.
+versioned S3 backup bucket and Systems Manager access. A separate global `OxygenBudget` stack in
+`us-east-1` holds the AWS monthly budget because that CloudFormation resource is not available in
+the Malaysia region. There is no NAT Gateway, load balancer or inbound SSH rule.
 
 This is a single-node pre-production topology, not the production high-availability design. The
 API, Web and PostgreSQL containers share the node. PostgreSQL data uses the encrypted EBS volume
@@ -25,8 +26,10 @@ an alert email and a random origin token of at least 32 characters:
 ```bash
 export CDK_DEFAULT_REGION=ap-southeast-5
 pnpm --filter @oxygen/infra cdk bootstrap aws://ACCOUNT_ID/ap-southeast-5
+pnpm --filter @oxygen/infra cdk bootstrap aws://ACCOUNT_ID/us-east-1
+pnpm --filter @oxygen/infra cdk deploy OxygenBudget \
+  --parameters BudgetAlertEmail=OWNER_EMAIL
 pnpm --filter @oxygen/infra cdk deploy OxygenPreprod \
-  --parameters BudgetAlertEmail=OWNER_EMAIL \
   --parameters OriginVerifyToken=RANDOM_32_PLUS_CHARACTER_VALUE \
   --parameters CognitoDomainPrefix=GLOBALLY_UNIQUE_LOWERCASE_PREFIX
 ```

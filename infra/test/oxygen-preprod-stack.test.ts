@@ -2,9 +2,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import * as cdk from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
+import { OxygenBudgetStack } from "../lib/oxygen-budget-stack.js";
 import { OxygenPreprodStack } from "../lib/oxygen-preprod-stack.js";
 
-test("pre-production stack has identity, HTTPS entry, runtime and cost guardrails", () => {
+test("pre-production stack has identity, HTTPS entry and runtime safeguards", () => {
   const app = new cdk.App();
   const stack = new OxygenPreprodStack(app, "TestStack", {
     env: { account: "111111111111", region: "ap-southeast-5" },
@@ -28,13 +29,29 @@ test("pre-production stack has identity, HTTPS entry, runtime and cost guardrail
     },
     VersioningConfiguration: { Status: "Enabled" },
   });
+});
+
+test("global budget stack has the approved monthly guardrail", () => {
+  const app = new cdk.App();
+  const stack = new OxygenBudgetStack(app, "BudgetTestStack", {
+    env: { account: "111111111111", region: "us-east-1" },
+  });
+  const template = Template.fromStack(stack);
+
   template.hasResourceProperties("AWS::Budgets::Budget", {
     Budget: Match.objectLike({
       BudgetLimit: { Amount: 20, Unit: "USD" },
       TimeUnit: "MONTHLY",
     }),
   });
+});
 
+test("pre-production runtime stays single-node", () => {
+  const app = new cdk.App();
+  const stack = new OxygenPreprodStack(app, "RuntimeTestStack", {
+    env: { account: "111111111111", region: "ap-southeast-5" },
+  });
+  const template = Template.fromStack(stack);
   const json = template.toJSON();
   const instances = Object.values(json.Resources).filter(
     (resource) => (resource as { Type?: string }).Type === "AWS::EC2::Instance",
