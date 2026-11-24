@@ -1,0 +1,13 @@
+.git
+.github
+.tools
+.pnpm-store
+node_modules
+**/node_modules
+**/target
+**/dist
+**/test-results
+**/playwright-report
+infra/cdk.out
+data
+*.log

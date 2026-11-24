@@ -12,6 +12,7 @@ node_modules/
 .pnpm-store/
 dist/
 cdk.out/
+cdk.context.json
 coverage/
 playwright-report/
 test-results/

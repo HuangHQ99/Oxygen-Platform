@@ -1,0 +1,7 @@
+[Unit]
+Description=Back up Oxygen PostgreSQL to S3
+After=oxygen-runtime.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/oxygen/runtime/backup.sh

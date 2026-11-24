@@ -16,6 +16,18 @@ test("pre-production stack has identity, HTTPS entry, runtime and cost guardrail
   template.resourceCountIs("AWS::Cognito::UserPool", 1);
   template.resourceCountIs("AWS::Cognito::UserPoolClient", 1);
   template.resourceCountIs("AWS::ECR::Repository", 2);
+  template.resourceCountIs("AWS::S3::Bucket", 1);
+  template.resourceCountIs("AWS::Cognito::UserPoolDomain", 1);
+  template.hasResourceProperties("AWS::S3::Bucket", {
+    BucketEncryption: Match.anyValue(),
+    PublicAccessBlockConfiguration: {
+      BlockPublicAcls: true,
+      BlockPublicPolicy: true,
+      IgnorePublicAcls: true,
+      RestrictPublicBuckets: true,
+    },
+    VersioningConfiguration: { Status: "Enabled" },
+  });
   template.hasResourceProperties("AWS::Budgets::Budget", {
     Budget: Match.objectLike({
       BudgetLimit: { Amount: 20, Unit: "USD" },
