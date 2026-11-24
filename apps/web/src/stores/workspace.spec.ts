@@ -47,7 +47,7 @@ describe('workspace store', () => {
     expect(store.switchClient('client-b-demo')).toBe(true)
     expect(store.currentDataCentreId).toBe('all')
     expect(store.currentRoles).toEqual(['PROVIDER_FIELD_ENGINEER'])
-    expect(store.contextRevision).toBe(1)
+    expect(store.contextRevision).toBe(2)
     expect(store.notice).toContain('上一客户的页面条件与临时上下文已清除')
   })
 
@@ -58,5 +58,15 @@ describe('workspace store', () => {
 
     expect(store.switchDataCentre('site-a1-demo')).toBe(false)
     expect(store.currentDataCentreId).toBe('all')
+  })
+
+  it('rebuilds page context when the selected data centre changes', () => {
+    const store = useWorkspaceStore()
+    store.hydrate(fixture)
+
+    expect(store.switchDataCentre('site-a1-demo')).toBe(true)
+    expect(store.contextRevision).toBe(1)
+    expect(store.switchDataCentre('site-a1-demo')).toBe(true)
+    expect(store.contextRevision).toBe(1)
   })
 })

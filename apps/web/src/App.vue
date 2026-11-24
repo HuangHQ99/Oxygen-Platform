@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted } from 'vue'
+import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 
 import { visibleNavigation } from '@/navigation'
@@ -22,16 +22,25 @@ const actorInitials = computed(() =>
 async function changeClient(event: Event) {
   const clientId = (event.target as HTMLSelectElement).value
   if (!workspace.switchClient(clientId)) return
-  if (!navigation.value.some((item) => item.name === route.name)) {
-    await router.replace({ name: 'home' })
-  }
+  await redirectUnavailableRoute()
 }
 
 function changeDataCentre(event: Event) {
   workspace.switchDataCentre((event.target as HTMLSelectElement).value)
 }
 
-onMounted(() => workspace.load(controller.signal))
+async function redirectUnavailableRoute() {
+  if (!workspace.bootstrap) return
+  if (!navigation.value.some((item) => item.name === route.name)) {
+    await router.replace({ name: 'home' })
+  }
+}
+
+watch([() => route.name, navigation], redirectUnavailableRoute, { flush: 'post' })
+onMounted(async () => {
+  await workspace.load(controller.signal)
+  await redirectUnavailableRoute()
+})
 onBeforeUnmount(() => controller.abort())
 </script>
 

@@ -80,6 +80,11 @@ test('renders the Oxygen shell without horizontal overflow', async ({ page }) =>
   expect(await page.getByText('设备资产').count()).toBe(0)
   expect(await page.getByText('维保计划').count()).toBe(0)
 
+  await page.goto('/plans')
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByLabel('当前客户')).toHaveValue('client-b-demo')
+  expect(await page.getByRole('heading', { name: '维保计划', exact: true }).count()).toBe(0)
+
   if (usesRealApi) {
     const readiness = await page.request.get('/actuator/health/readiness')
     expect(readiness.status()).toBe(200)

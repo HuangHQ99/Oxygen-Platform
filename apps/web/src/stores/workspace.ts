@@ -78,13 +78,16 @@ export const useWorkspaceStore = defineStore('workspace', () => {
   }
 
   function switchDataCentre(dataCentreId: string) {
-    if (dataCentreId === ALL_DATA_CENTRES) {
-      currentDataCentreId.value = ALL_DATA_CENTRES
-      persist()
-      return true
+    if (
+      dataCentreId !== ALL_DATA_CENTRES &&
+      !dataCentres.value.some((dataCentre) => dataCentre.id === dataCentreId)
+    ) {
+      return false
     }
-    if (!dataCentres.value.some((dataCentre) => dataCentre.id === dataCentreId)) return false
+    if (dataCentreId === currentDataCentreId.value) return true
+
     currentDataCentreId.value = dataCentreId
+    contextRevision.value += 1
     persist()
     return true
   }
@@ -99,17 +102,25 @@ export const useWorkspaceStore = defineStore('workspace', () => {
       clientId: currentClientId.value,
       dataCentreId: currentDataCentreId.value,
     }
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(context))
+    try {
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(context))
+    } catch {
+      // Session persistence is best-effort; the in-memory authorization context remains valid.
+    }
   }
 
   function readStoredContext(): StoredContext | null {
     if (typeof sessionStorage === 'undefined') return null
-    const stored = sessionStorage.getItem(STORAGE_KEY)
-    if (!stored) return null
     try {
+      const stored = sessionStorage.getItem(STORAGE_KEY)
+      if (!stored) return null
       return JSON.parse(stored) as StoredContext
     } catch {
-      sessionStorage.removeItem(STORAGE_KEY)
+      try {
+        sessionStorage.removeItem(STORAGE_KEY)
+      } catch {
+        // Storage can be unavailable in restricted browser contexts.
+      }
       return null
     }
   }
