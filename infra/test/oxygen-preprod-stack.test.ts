@@ -61,9 +61,15 @@ test("pre-production runtime stays single-node", () => {
 });
 
 test("runtime containers expose the DNS aliases used by application configuration", () => {
-  const deployScript = readFileSync(new URL("../../runtime/deploy.sh", import.meta.url), "utf8");
+  const deployScript = readFileSync(
+    new URL("../../runtime/deploy.sh", import.meta.url),
+    "utf8",
+  );
 
   assert.match(deployScript, /--network oxygen --network-alias postgres/);
   assert.match(deployScript, /--network oxygen --network-alias api/);
-  assert.match(deployScript, /docker network connect --alias postgres oxygen oxygen-postgres/);
+  assert.match(
+    deployScript,
+    /docker network connect --alias postgres oxygen oxygen-postgres/,
+  );
 });
