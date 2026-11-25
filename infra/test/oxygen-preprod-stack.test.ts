@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import * as cdk from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
@@ -57,4 +58,12 @@ test("pre-production runtime stays single-node", () => {
     (resource) => (resource as { Type?: string }).Type === "AWS::EC2::Instance",
   );
   assert.equal(instances.length, 1);
+});
+
+test("runtime containers expose the DNS aliases used by application configuration", () => {
+  const deployScript = readFileSync(new URL("../../runtime/deploy.sh", import.meta.url), "utf8");
+
+  assert.match(deployScript, /--network oxygen --network-alias postgres/);
+  assert.match(deployScript, /--network oxygen --network-alias api/);
+  assert.match(deployScript, /docker network connect --alias postgres oxygen oxygen-postgres/);
 });

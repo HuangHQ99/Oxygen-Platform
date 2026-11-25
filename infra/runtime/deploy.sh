@@ -63,7 +63,7 @@ previous_web="$(docker inspect --format '{{.Config.Image}}' oxygen-web 2>/dev/nu
 
 if ! docker inspect oxygen-postgres >/dev/null 2>&1; then
   docker run -d --name oxygen-postgres --restart unless-stopped \
-    --network oxygen \
+    --network oxygen --network-alias postgres \
     --memory 256m \
     -e POSTGRES_DB=oxygen \
     -e POSTGRES_USER="$db_user" \
@@ -72,6 +72,12 @@ if ! docker inspect oxygen-postgres >/dev/null 2>&1; then
     postgres:17.7-alpine
 else
   docker start oxygen-postgres >/dev/null || true
+  if ! docker inspect oxygen-postgres \
+    --format '{{range $network, $settings := .NetworkSettings.Networks}}{{range $settings.Aliases}}{{println .}}{{end}}{{end}}' \
+    | grep -qx postgres; then
+    docker network disconnect oxygen oxygen-postgres
+    docker network connect --alias postgres oxygen oxygen-postgres
+  fi
 fi
 unset db_password
 
@@ -85,7 +91,7 @@ start_application() {
   local selected_api="$1" selected_web="$2"
   docker rm -f oxygen-api oxygen-web >/dev/null 2>&1 || true
   docker run -d --name oxygen-api --restart unless-stopped \
-    --network oxygen --memory 512m --env-file "$runtime_env" \
+    --network oxygen --network-alias api --memory 512m --env-file "$runtime_env" \
     -p 127.0.0.1:8080:8080 "$selected_api" >/dev/null
   docker run -d --name oxygen-web --restart unless-stopped \
     --network oxygen --memory 64m -p 127.0.0.1:8081:8081 "$selected_web" >/dev/null
